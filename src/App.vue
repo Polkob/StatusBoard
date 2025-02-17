@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-container height="100%" margin-right="0px" width="1200px">
+    <v-container height="100%" class="mr-0">
       <v-card>
         <v-row>
           <v-col cols="12">
