@@ -66,7 +66,7 @@
           </v-navigation-drawer>
 
           <v-col cols="12" class="mt-9">
-            <router-view :data="filteredData" />
+            <router-view :data="filteredData" :refresh="refreshData" @select="handleSelect"/>
           </v-col>
         </v-row>
       </v-card>
@@ -137,9 +137,17 @@ export default {
     },
   },
   methods: {
+    handleSelect(item) {
+      console.log("Selected item from table:", item);
+    },
+    async refreshData() {
+      await this.fetchData(); 
+    },
     async fetchData() {
       try {
-        const response = await axios.get("https://retoolapi.dev/D6xLg4/data");
+        const response = await axios.get(
+          "https://api-generator.retool.com/DLcnga/data"
+        );
         this.data = response.data;
       } catch (error) {
         console.error("Ошибка при получении данных:", error);
