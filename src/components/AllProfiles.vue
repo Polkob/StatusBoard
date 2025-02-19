@@ -90,7 +90,6 @@ export default {
       }
     },
     selectItem(item) {
-      console.log("Выбран:", item);
       this.selectedItem = item; 
     },
   },

@@ -83,6 +83,8 @@
 </template>
 
 <script>
+import { mapState, mapActions } from "vuex";
+
 export default {
   data() {
     return {
@@ -118,74 +120,65 @@ export default {
       immediate: true,
     },
   },
+  computed: {
+    ...mapState(["selectedItem", "items"]),
+  },
   methods: {
+    ...mapActions(["addItem", "updateItem", "removeItem"]),
+
     getRandomStatus() {
       return Math.random() < 0.5;
     },
     handleAction(event) {
-    const action = event.target.value;
-    console.log("Выбрано действие:", action);
+      const action = event.target.value;
+      console.log("Выбрано действие:", action);
 
-    if (action === "Добавить") {
-      this.isEditMode = false;
-      this.formData = {
-        email: "",
-        phone: "",
-        status: this.getRandomStatus(),
-        company: "",
-        jobTitle: "",
-        lastName: "",
-        firstName: "",
-        interests: "",
-      };
-      this.dialog = true;
-    } else if (action === "Изменить") {
-      if (!this.selectedItem) {
-        alert("Пожалуйста, выберите элемент в таблице для изменения.");
-        this.$refs.actionSelect.value = "";
-        return;
+      if (action === "Добавить") {
+        this.isEditMode = false;
+        this.formData = {
+          email: "",
+          phone: "",
+          status: this.getRandomStatus(),
+          company: "",
+          jobTitle: "",
+          lastName: "",
+          firstName: "",
+          interests: "",
+        };
+        this.dialog = true;
+      } else if (action === "Изменить") {
+        if (!this.selectedItem) {
+          alert("Пожалуйста, выберите элемент в таблице для изменения.");
+          this.$refs.actionSelect.value = "";
+          return;
+        }
+        this.isEditMode = true;
+        this.formData = { ...this.selectedItem };
+        this.dialog = true;
+      } else if (action === "Удалить") {
+        if (!this.selectedItem) {
+          alert("Пожалуйста, выберите элемент в таблице для удаления.");
+          this.$refs.actionSelect.value = "";
+          return;
+        }
+        this.isDeleteMode = true;
+        this.formData = { ...this.selectedItem };
+        console.log("Удалить элемент");
+        this.dialogDelete = true;
       }
-      this.isEditMode = true;
-      this.formData = { ...this.selectedItem };
-      this.dialog = true;
-    } else if (action === "Удалить") {
-      if (!this.selectedItem) {
-        alert("Пожалуйста, выберите элемент в таблице для удаления.");
-        this.$refs.actionSelect.value = ""; 
-        return;
-      }
-      this.isDeleteMode = true;
-      this.formData = { ...this.selectedItem };
-      console.log("Удалить элемент");
-      this.dialogDelete = true;
-    }
 
-    this.$refs.actionSelect.value = "";
-  },
+      this.$refs.actionSelect.value = "";
+    },
     async handleDelete() {
       if (!this.selectedItem || !this.selectedItem.id) {
         console.error("Не выбран элемент или ID отсутствует.");
         return;
       }
 
-      const url = `https://api-generator.retool.com/DLcnga/data/${this.selectedItem.id}`;
-      const method = "DELETE";
-
       try {
-        console.log("Данные для отправки:", this.formData);
-        const response = await fetch(url, {
-          method: method,
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(this.formData),
-        });
-
-        if (!response.ok) {
-          throw new Error("Ошибка при удалении данных");
-        }
+        await this.removeItem(this.selectedItem.id); // вызов действия Vuex для удаления
         this.dialogDelete = false;
-        console.log("Данные успешно удалены");
+        console.log("Элемент успешно удален");
       } catch (error) {
         console.error("Ошибка:", error);
       }
@@ -193,24 +186,11 @@ export default {
     },
     async submitForm() {
       if (this.$refs.form.validate()) {
-        const url = this.isEditMode
-          ? "https://api-generator.retool.com/DLcnga/data/1"
-          : "https://api-generator.retool.com/DLcnga/data";
-
-        const method = this.isEditMode ? "PUT" : "POST";
-
         try {
-          console.log("Данные для отправки:", this.formData);
-          const response = await fetch(url, {
-            method: method,
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(this.formData),
-          });
-
-          if (!response.ok) {
-            throw new Error("Ошибка при отправке данных");
+          if (this.isEditMode) {
+            await this.updateItem(this.formData); 
+          } else {
+            await this.addItem(this.formData); 
           }
           this.dialog = false;
           console.log("Данные успешно отправлены");
